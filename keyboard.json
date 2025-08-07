@@ -4,7 +4,8 @@
     "maintainer": "EPOMAKER",
     "bootloader": "wb32-dfu",
     "bootmagic": {
-        "matrix": [0, 0]
+        "enabled": true,
+        "matrix": [1, 0]
     },
     "debounce": 1,
     "diode_direction": "ROW2COL",
@@ -231,6 +232,9 @@
         },
         "handedness": {
             "pin": "B9"
+        },
+        "bootmagic": {
+            "matrix": [11, 8]
         }
     },
     "tap_keycode_delay": 10,

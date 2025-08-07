@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
-#include "wls/wls.h"
 #include "rgb_record/rgb_record.h"
 #include "quantum.h"
 #include "serial_usart.h"
 #ifdef WIRELESS_ENABLE
+#    include "wls/wls.h"
 #    include "wireless.h"
 #    include "usb_main.h"
 #    include "lowpower.h"
@@ -199,7 +199,9 @@ void keyboard_post_init_kb(void) {
 
     start_hsv = rgb_matrix_get_hsv();
 
+#ifdef WIRELESS_ENABLE
     pov = *md_getp_bat();
+#endif
     // usart_init();
     transaction_register_rpc(USER_SYNC_MMS, user_sync_mms_slave_handler);
 }
@@ -255,7 +257,7 @@ bool lpwr_is_allow_timeout_hook(void) {
         return false;
     }
 
-    return true;
+    return false;  // TODO: figure out why sleep/wakeup doesn't working
 }
 
 void wireless_post_task(void) {
@@ -391,9 +393,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         rgb_matrix_set_color_all(0x00, 0x00, 0x00);
     }
 
+#ifdef WIRELESS_ENABLE
     if (*md_getp_state() == MD_STATE_CONNECTED) {
         hs_rgb_blink_set_timer(timer_read32());
     }
+#endif
 
     switch (keycode) {
         case MO(_FL):
@@ -407,7 +411,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             break;
         }
-        
+
         case RGB_MOD:
             break;
         default: {
@@ -518,7 +522,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 register_code(KC_LCTL);
                 register_code(KC_Z);
-            } 
+            }
             else{
                 unregister_code(KC_LCTL);
                 unregister_code(KC_Z);
@@ -528,7 +532,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 register_code(KC_LCTL);
                 register_code(KC_X);
-            } 
+            }
             else{
                 unregister_code(KC_LCTL);
                 unregister_code(KC_X);
@@ -538,7 +542,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 register_code(KC_LCTL);
                 register_code(KC_C);
-            } 
+            }
             else{
                 unregister_code(KC_LCTL);
                 unregister_code(KC_C);
@@ -548,7 +552,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 register_code(KC_LCTL);
                 register_code(KC_V);
-            } 
+            }
             else{
                 unregister_code(KC_LCTL);
                 unregister_code(KC_V);
@@ -583,7 +587,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F3:{
         if(confinfo.filp){
             if (keymap_is_mac_system()) {
-                
+
                 if (record->event.pressed) {
                     register_code16(KC_VOLU);
                 } else {
@@ -649,7 +653,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F8:{
        if(confinfo.filp){
             if (keymap_is_mac_system()) {
-        
+
                 if (record->event.pressed) {
                     register_code16(KC_MNXT);
                 } else {
@@ -663,7 +667,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F9:{
         if(confinfo.filp){
             if (keymap_is_mac_system()) {
-            
+
                 if (record->event.pressed) {
                     register_code16(KC_MAIL);
                 } else {
@@ -677,7 +681,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F10:{
         if(confinfo.filp){
             if (keymap_is_mac_system()) {
-               
+
                 if (record->event.pressed) {
                     register_code16(KC_WHOM);
                 } else {
@@ -691,7 +695,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F11:{
         if(confinfo.filp){
             if (keymap_is_mac_system()) {
-                
+
                 if (record->event.pressed) {
                     register_code16(KC_CALC);
                 } else {
@@ -705,7 +709,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     case KC_F12:{
         if(confinfo.filp){
             if (keymap_is_mac_system()) {
-            
+
                 if (record->event.pressed) {
                     register_code16(KC_WSCH);
                 } else {
@@ -822,7 +826,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                     if (record->event.pressed) {
                         rgb_matrix_decrease_val();
                     }
-                    
+
                 }
                 return false;
             }
@@ -988,12 +992,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
         } break;
         case KC_BATQ:{
             if (record->event.pressed) {
-            
+
                 im_bat_req_charging_flag =  true;
                 }
             else{
                 im_bat_req_charging_flag =  false;
-            
+
             }
         }break;
         case QK_BOOT: {
@@ -1071,7 +1075,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 }
             }
         } break;
-        
+
         case TO(_BL): {
             if (record->event.pressed) {
                 rgb_matrix_hs_set_remain_time(HS_RGB_BLINK_INDEX_MAC, 0);
@@ -1096,7 +1100,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
             return false;
         } break;
-    
+
         case RGB_MOD: {
             if(record->event.pressed){
                 uint8_t mode = rgb_matrix_get_mode();
@@ -1135,11 +1139,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
             return true;
         } break;
+#ifdef WIRELESS_ENABLE
         case HS_BATQ: {
             extern bool rk_bat_req_flag;
             rk_bat_req_flag = (confinfo.devs != DEVS_USB) && record->event.pressed;
             return false;
         } break;
+#endif
 
         default:
             break;
@@ -1149,6 +1155,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 void housekeeping_task_user(void) { // loop
+#ifdef WIRELESS_ENABLE
     uint8_t hs_now_mode;
     static uint32_t hs_current_time;
 
@@ -1170,13 +1177,16 @@ void housekeeping_task_user(void) { // loop
         md_send_devctrl(hs_now_mode);
         md_send_devctrl(MD_SND_CMD_DEVCTRL_INQVOL);
     }
+#endif
 
     if (is_keyboard_master()) {
         static uint32_t last_sync = 0;
         if (timer_elapsed32(last_sync) > 2000) {
             last_sync = timer_read32();
+#ifdef WIRELESS_ENABLE
             pov = *md_getp_bat();
             master_sync_mms_slave(wireless_get_current_devs(), wireless_get_current_devs(), pov);
+#endif
         }
     }
 }
@@ -1488,7 +1498,7 @@ bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
 
     if (host_keyboard_led_state().caps_lock)
         rgb_matrix_set_color(HS_RGB_INDEX_CAPS, 0x20, 0x20, 0x20);
-        
+
     if (!keymap_is_mac_system() && keymap_config.no_gui)
         rgb_matrix_set_color(HS_RGB_INDEX_WIN_LOCK, 0x20, 0x20, 0x20);
 
@@ -1547,11 +1557,11 @@ void hs_reset_settings(void) {
     rgblight_enable();
 #endif
 
-    keymap_config.raw = eeconfig_read_keymap();
+    eeconfig_read_keymap(&keymap_config);
 
 #if defined(NKRO_ENABLE) && defined(FORCE_NKRO)
     keymap_config.nkro = 0;
-    eeconfig_update_keymap(keymap_config.raw);
+    eeconfig_update_keymap(&keymap_config);
 #endif
 
     // #if defined(WIRELESS_ENABLE)
@@ -1562,12 +1572,16 @@ void hs_reset_settings(void) {
 
         return;
     }
+#ifdef WIRELESS_ENABLE
     hs_rgb_blink_set_timer(timer_read32());
+#endif
     keyboard_post_init_kb();
 }
 
 void lpwr_wakeup_hook(void) {
+#ifdef WIRELESS_ENABLE
     hs_mode_scan(false, confinfo.devs, confinfo.last_btdevs);
+#endif
 
     if (rgb_matrix_get_val() != 0){
         gpio_write_pin_high(LED_POWER_EN_PIN);
@@ -1586,7 +1600,9 @@ void user_sync_mms_slave_handler(uint8_t in_buflen, const void* in_data, uint8_t
     switch(m2s->cmd)
     {
         case 0x55:  //sync multimode
+#ifdef WIRELESS_ENABLE
             wireless_devs_change(m2s->body[0], m2s->body[1], false);
+#endif
             s2m->resp = 0x00;
         break;
         case 0xDD:
