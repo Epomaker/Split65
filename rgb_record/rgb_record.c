@@ -318,6 +318,7 @@ void query(void) {
 #else
         rgb_matrix_set_color_all(0x00, 0x00, 0x00);
 #endif
+#ifdef WIRELESS_ENABLE
         for (uint8_t i = 0; i < 10; i++) {
             uint8_t mi_index[10] = RGB_MATRIX_BAT_INDEX_MAP;
             if ((i < (*md_getp_bat() / 10)) || (i < 1)) {
@@ -332,5 +333,6 @@ void query(void) {
                 rgb_matrix_set_color(mi_index[i], 0x00, 0x00, 0x00);
             }
         }
+#endif
     }
 }

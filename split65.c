@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include QMK_KEYBOARD_H
-#include "wls/wls.h"
 #include "rgb_record/rgb_record.h"
 #include "quantum.h"
 #include "serial_usart.h"
 #ifdef WIRELESS_ENABLE
+#    include "wls/wls.h"
 #    include "wireless.h"
 #    include "usb_main.h"
 #    include "lowpower.h"
@@ -199,7 +199,9 @@ void keyboard_post_init_kb(void) {
 
     start_hsv = rgb_matrix_get_hsv();
 
+#ifdef WIRELESS_ENABLE
     pov = *md_getp_bat();
+#endif
     // usart_init();
     transaction_register_rpc(USER_SYNC_MMS, user_sync_mms_slave_handler);
 }
@@ -391,9 +393,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         rgb_matrix_set_color_all(0x00, 0x00, 0x00);
     }
 
+#ifdef WIRELESS_ENABLE
     if (*md_getp_state() == MD_STATE_CONNECTED) {
         hs_rgb_blink_set_timer(timer_read32());
     }
+#endif
 
     switch (keycode) {
         case MO(_FL):
@@ -1135,11 +1139,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
             return true;
         } break;
+#ifdef WIRELESS_ENABLE
         case HS_BATQ: {
             extern bool rk_bat_req_flag;
             rk_bat_req_flag = (confinfo.devs != DEVS_USB) && record->event.pressed;
             return false;
         } break;
+#endif
 
         default:
             break;
@@ -1149,6 +1155,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 void housekeeping_task_user(void) { // loop
+#ifdef WIRELESS_ENABLE
     uint8_t hs_now_mode;
     static uint32_t hs_current_time;
 
@@ -1170,13 +1177,16 @@ void housekeeping_task_user(void) { // loop
         md_send_devctrl(hs_now_mode);
         md_send_devctrl(MD_SND_CMD_DEVCTRL_INQVOL);
     }
+#endif
 
     if (is_keyboard_master()) {
         static uint32_t last_sync = 0;
         if (timer_elapsed32(last_sync) > 2000) {
             last_sync = timer_read32();
+#ifdef WIRELESS_ENABLE
             pov = *md_getp_bat();
             master_sync_mms_slave(wireless_get_current_devs(), wireless_get_current_devs(), pov);
+#endif
         }
     }
 }
@@ -1562,12 +1572,16 @@ void hs_reset_settings(void) {
 
         return;
     }
+#ifdef WIRELESS_ENABLE
     hs_rgb_blink_set_timer(timer_read32());
+#endif
     keyboard_post_init_kb();
 }
 
 void lpwr_wakeup_hook(void) {
+#ifdef WIRELESS_ENABLE
     hs_mode_scan(false, confinfo.devs, confinfo.last_btdevs);
+#endif
 
     if (rgb_matrix_get_val() != 0){
         gpio_write_pin_high(LED_POWER_EN_PIN);
@@ -1586,7 +1600,9 @@ void user_sync_mms_slave_handler(uint8_t in_buflen, const void* in_data, uint8_t
     switch(m2s->cmd)
     {
         case 0x55:  //sync multimode
+#ifdef WIRELESS_ENABLE
             wireless_devs_change(m2s->body[0], m2s->body[1], false);
+#endif
             s2m->resp = 0x00;
         break;
         case 0xDD:
