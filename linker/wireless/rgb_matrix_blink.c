@@ -1,6 +1,7 @@
 // Copyright 2024 JoyLee (@itarze)
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <stddef.h>
 #include "rgb_matrix.h"
 #include "rgb_matrix_blink.h"
 #include "timer.h"

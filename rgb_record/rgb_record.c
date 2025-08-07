@@ -4,6 +4,7 @@
 #include "rgb_record.h"
 #include "rgb_matrix.h"
 #include "eeprom.h"
+#include "quantum/nvm/nvm_eeconfig.h"
 
 #define RGBREC_STATE_ON  1
 #define RGBREC_STATE_OFF 0
@@ -121,14 +122,14 @@ bool rgbrec_start(uint8_t channel) {
 }
 
 void rgbrec_update_current_channel(uint8_t channel) {
-    uint32_t addr = 0;
+    uint32_t offset = 0;
 
     if (channel >= RGBREC_CHANNEL_NUM) {
         return;
     }
 
-    addr = (uint32_t)(RGBREC_EECONFIG_ADDR) + (channel * sizeof(rgbrec_buffer));
-    eeprom_update_block(rgbrec_buffer, (void *)addr, sizeof(rgbrec_buffer));
+    offset = (uint32_t)(RGBREC_EECONFIG_OFFSET) + (channel * sizeof(rgbrec_buffer));
+    nvm_eeconfig_update_user_datablock(rgbrec_buffer, offset, sizeof(rgbrec_buffer));
 }
 
 bool rgbrec_end(uint8_t channel) {
@@ -185,15 +186,15 @@ void rgbrec_set_close_all(uint8_t h, uint8_t s, uint8_t v) {
 }
 
 void rgbrec_read_current_channel(uint8_t channel) {
-    uint32_t addr = 0;
+    uint32_t offset = 0;
 
     if (channel >= RGBREC_CHANNEL_NUM) {
 
         return;
     }
 
-    addr = (uint32_t)(RGBREC_EECONFIG_ADDR) + (channel * sizeof(rgbrec_buffer));
-    eeprom_read_block(rgbrec_buffer, (void *)addr, sizeof(rgbrec_buffer));
+    offset = (uint32_t)(RGBREC_EECONFIG_OFFSET) + (channel * sizeof(rgbrec_buffer));
+    nvm_eeconfig_read_user_datablock(rgbrec_buffer, offset, sizeof(rgbrec_buffer));
 }
 
 bool rgbrec_is_started(void) {
@@ -265,8 +266,9 @@ void record_rgbmatrix_increase(uint8_t *last_mode) {
 
 uint8_t record_color_read_data(void) {
     uint8_t hs_mode    = find_index();
-    const uint8_t *ptr = (const uint8_t *)(((uint32_t)CONFINFO_EECONFIG_ADDR + 4) + hs_mode);
-    uint8_t hs_c       = eeprom_read_byte(ptr);
+    const uint32_t offset = (((uint32_t)CONFINFO_EECONFIG_OFFSET + 4) + hs_mode);
+    uint8_t hs_c;
+    nvm_eeconfig_read_user_datablock(&hs_c, offset, 1);
 
     if (hs_c > RGB_HSV_MAX) {
         return 0;
@@ -302,8 +304,8 @@ uint8_t record_color_hsv(bool status) {
 
     rgb_matrix_sethsv(rgb_hsvs[rgb_hsv_index][0], rgb_hsvs[rgb_hsv_index][1], rgb_matrix_get_val());
 
-    uint8_t *ptr = (uint8_t *)(((uint32_t)CONFINFO_EECONFIG_ADDR + 4) + find_index());
-    eeprom_write_byte(ptr, rgb_hsv_index);
+    uint32_t offset = ((uint32_t)CONFINFO_EECONFIG_OFFSET + 4) + find_index();
+    nvm_eeconfig_update_user_datablock(&rgb_hsv_index, offset, 1);
     return rgb_hsv_index;
 }
 
