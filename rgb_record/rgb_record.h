@@ -24,7 +24,9 @@
 #include "color.h"
 #include "eeprom.h"
 #include "quantum.h"
+#ifdef WIRELESS_ENABLE
 #include "wireless.h"
+#endif
 
 #define HS_GET_H(value) ((uint8_t)(value >> 8))
 #define HS_GET_S(value) ((uint8_t)(value & 0xFF))
